@@ -1,0 +1,91 @@
+package com.getneteurope.member;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+// consider adding javadocs to explain what this class is and generally how/where it will be used.
+public class Person implements Serializable {
+	private static final long serialVersionUID = -4238320309780264419L;
+	
+	// code to base/abstract classes/interface if concrete specific features are not required.
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("mm/DD/yyyy");
+	
+	// make these variables as private
+	// maybe even make this class as immutable by defining these variables as final
+	public String name; // consider splitting into atleast first and last name, if not a separate "Name" class which could as well contain salutation/initials middle name etc.
+	public Date birthDate;
+	public boolean gender; // consider creating separate class/enum for this instead of a boolean.
+	public Person father;
+	public Person mother;
+
+	public Person(String name, Date birthdate, boolean gender, Person father, Person mother) {
+		this.name = name;
+		this.birthDate = birthdate;
+		this.gender = gender;
+		this.father = father;
+		this.mother = mother;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Date getBirthDate() {
+		return birthDate; // protect against change by external classes, by creating another "Date" object using this birthDate and return that instead.
+	}
+
+	public boolean isGender() {
+		return gender;
+	}
+
+	public String getFormattedDateOfBirth() {
+		try {
+			return DATE_FORMAT.format(birthDate);
+		} catch (Throwable t) { // catch Exception instead of THrowable which catches errors as well
+			t.printStackTrace(); // log an appropriate message instead of using printStackTrace() which outputs to console
+			throw new RuntimeException(t); // consider creating and using own classes which could give more meaning/context the exception.
+		}
+	}
+
+	public int age() {
+		long now = System.currentTimeMillis();
+		return (int) ((now - birthDate.getTime()) / 365 / 24 / 60 / 1000);
+	}
+
+	public boolean isAncestorOf(Person person) {
+		// all these ifs could be merged into single boolean expression without losing much readbility:
+		// return person != null && (equals(person.father) || equals(person.mother) || isAncestorOf(person.father) || isAncestorOf(person.mother))
+		
+		// also, it returns true for comparision with self. Is this expected?
+		if (person != null) {
+			if (equals(person.father))
+				return true;
+			if (isAncestorOf(person.father)) {
+				return true;
+			}
+			if (equals(person.mother))
+				return true;
+			if (isAncestorOf(person.mother)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	// consider overriding hashCode() too
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+		if (o instanceof Person) // consider using apache's ToEqualsBuilder to build these expressions
+			
+			return ((Person) o).name == name && ((Person) o).birthDate == birthDate; // currently, 2 person with same name and date of birth are considered same. Consider adding checks for father and mother too. 
+																					 // though it could involve equals check all the wy up to the root on the parent-child tree hierarchy. Consider those scenarios too.
+		return false;
+	}
+
+	public String toString() {
+		return getName();
+	}
+}
